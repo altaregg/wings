@@ -45,6 +45,25 @@ func getSystemInformation(c *gin.Context) {
 	})
 }
 
+// Public aggregate capacity information used by Altare's node picker.
+func getPublicNodeStats(c *gin.Context) {
+	c.Header("Access-Control-Allow-Origin", "*")
+	c.Writer.Header().Del("Access-Control-Allow-Credentials")
+	c.Header("Cache-Control", "public, max-age=5")
+	stats, err := system.GetNodeStats(config.Get().System.Data)
+	if err != nil {
+		middleware.CaptureAndAbort(c, err)
+		return
+	}
+	for _, s := range middleware.ExtractManager(c).All() {
+		stats.Daemon.ServersTotal++
+		if s.IsRunning() {
+			stats.Daemon.ServersRunning++
+		}
+	}
+	c.JSON(http.StatusOK, stats)
+}
+
 // Returns all the servers that are registered and configured correctly on
 // this wings instance.
 func getAllServers(c *gin.Context) {

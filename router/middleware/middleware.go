@@ -125,6 +125,9 @@ func SetAccessControlHeaders() gin.HandlerFunc {
 					continue
 				}
 				c.Header("Access-Control-Allow-Origin", o)
+				if o == "*" {
+					c.Writer.Header().Del("Access-Control-Allow-Credentials")
+				}
 				break
 			}
 		}
